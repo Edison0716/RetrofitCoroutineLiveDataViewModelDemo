@@ -24,6 +24,8 @@ class StockViewModel : ViewModel() {
     init {
         GlobalScope.launch(Dispatchers.IO) {
             requestStockLiveInfo()
+            delay(5000)
+            test1()
         }
     }
 
@@ -47,6 +49,7 @@ class StockViewModel : ViewModel() {
         job.join()
 
         val job1 = GlobalScope.launch(Dispatchers.Main) {
+            delay(5000)
             mTestLiveData.value = "OK"
         }
 
@@ -55,11 +58,42 @@ class StockViewModel : ViewModel() {
 
         job1.join()
 
-        GlobalScope.launch(Dispatchers.IO) {
-            repeat(Int.MAX_VALUE) {
-                mIntervalLikeRxJava.postValue("SEND_EVENT")
-                delay(3000)
+        //阻塞线程
+        runBlocking {
+            delay(5000)
+        }
+
+        val job2 = GlobalScope.launch(Dispatchers.Main) {
+            try {
+                repeat(Int.MAX_VALUE) {
+                    mIntervalLikeRxJava.value = "SEND_EVENT"
+                    delay(3000)
+                }
+            } finally {
+                Log.e("INTERVAL_LIKE_RXJAVA","轮询已结束")
             }
         }
+
+        delay(5000)
+
+        //取消一个任务并且等待它结束
+        job2.cancelAndJoin()
+    }
+
+
+    private fun test1() = runBlocking {
+        launch {
+            delay(200L)
+            Log.d("COROUTINE_SCOPE", "杰")
+        }
+        coroutineScope {
+            launch {
+                delay(300L)
+                Log.d("COROUTINE_SCOPE", "伦")
+            }
+            delay(100L)
+            Log.d("COROUTINE_SCOPE", "周")
+        }
+        Log.d("COROUTINE_SCOPE", "over")
     }
 }
