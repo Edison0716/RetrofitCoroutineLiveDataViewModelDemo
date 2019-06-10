@@ -38,5 +38,13 @@ class MainActivity : AppCompatActivity() {
             mTimes += 1
             Toast.makeText(this,"轮询$mTimes",Toast.LENGTH_SHORT).show()
         })
+
+        stockViewModel.mIntervalCannotCancelable.observe(this, Observer {
+            Toast.makeText(this,it.toString(),Toast.LENGTH_SHORT).show()
+        })
+
+        stockViewModel.channelTest()
+
+        stockViewModel.produceTest()
     }
 }

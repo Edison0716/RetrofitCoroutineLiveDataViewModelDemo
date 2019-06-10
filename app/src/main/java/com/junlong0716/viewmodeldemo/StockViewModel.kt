@@ -6,6 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import retrofit2.HttpException
 
 /**
@@ -20,6 +21,7 @@ class StockViewModel : ViewModel() {
     val mStockRequestErrorMsg = MutableLiveData<String>()
     val mTestLiveData = MutableLiveData<Any>()
     val mIntervalLikeRxJava = MutableLiveData<Any>()
+    val mIntervalCannotCancelable = MutableLiveData<Any>()
 
     init {
         GlobalScope.launch(Dispatchers.IO) {
@@ -71,6 +73,15 @@ class StockViewModel : ViewModel() {
                 }
             } finally {
                 Log.e("INTERVAL_LIKE_RXJAVA","轮询已结束")
+                //不允许取消的协程
+                withContext(NonCancellable){
+                    mIntervalCannotCancelable.value = "已经开启一个不可取消的协程"
+                }
+
+                //超时即可取消的协程
+                withTimeout(10000L){
+
+                }
             }
         }
 
@@ -95,5 +106,32 @@ class StockViewModel : ViewModel() {
             Log.d("COROUTINE_SCOPE", "周")
         }
         Log.d("COROUTINE_SCOPE", "over")
+    }
+
+    fun channelTest() = runBlocking(Dispatchers.IO){
+        val channel = Channel<Int>()
+
+        launch{
+            for (i in 1..5) {
+                channel.send(i * i)
+            }
+            channel.close()
+        }
+
+        repeat(5){
+            Log.e("CHANNEL_TEST",channel.receive().toString())
+        }
+    }
+
+
+    fun CoroutineScope.produceSquares(): ReceiveChannel<Int> = produce(Dispatchers.IO) {
+        for (x in 1..5) send(x * x)
+    }
+
+    @ObsoleteCoroutinesApi
+    fun produceTest() = runBlocking(Dispatchers.IO){
+        produceSquares().consumeEach {
+            Log.e("PRODUCE_TEST",it.toString())
+        }
     }
 }
