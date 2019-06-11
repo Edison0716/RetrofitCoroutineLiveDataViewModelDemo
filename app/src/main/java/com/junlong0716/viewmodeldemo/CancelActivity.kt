@@ -13,6 +13,12 @@ class CancelActivity : AppCompatActivity(){
         setContentView(R.layout.activity_cancel)
         mCancelViewModel = ViewModelProviders.of(this).get(CancelViewModel::class.java)
         mCancelViewModel!!.createCoroutine()
+        val stock = Stock("haha")
+        stock.print()
+    }
+
+    fun Stock.print(){
+        print("$name")
     }
 
     override fun onDestroy() {

@@ -13,9 +13,18 @@ import kotlinx.coroutines.*
 class CancelViewModel : ViewModel(),CoroutineScope by CoroutineScope(Dispatchers.Default) {
     fun createCoroutine() {
         repeat(1000) {
-            launch {
-                delay((it + 1) * 200L)
-                Log.d("创建协程", "延时时间${(it + 1) * 200L}")
+            async {
+                launch(Dispatchers.IO) {
+                    delay((it + 1) * 200L)
+                    Log.d("创建协程1", "延时时间${(it + 1) * 200L}")
+                }
+            }
+
+            async {
+                launch(Dispatchers.IO) {
+                    delay((it + 1) * 200L)
+                    Log.d("创建协程2", "延时时间${(it + 1) * 200L}")
+                }
             }
         }
     }
