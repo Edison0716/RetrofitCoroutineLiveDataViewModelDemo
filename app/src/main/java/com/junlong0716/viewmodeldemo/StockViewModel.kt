@@ -134,4 +134,30 @@ class StockViewModel : ViewModel() {
             Log.e("PRODUCE_TEST",it.toString())
         }
     }
+
+
+    fun cancelTest() = runBlocking{
+        val request = launch {
+            //不会随着父协程的取消而取消
+            GlobalScope.launch {
+                Log.d("我是父协程内部的一个新协程","我是父协程内部的一个新协程 --- 开启")
+                delay(2000)
+                Log.d("我是父协程内部的一个新协程","我是父协程内部的一个新协程 --- 结束")
+            }
+
+            //随着父协程的取消而取消
+            launch {
+                delay(100)
+                Log.d("我是承袭父协程上下文的子协程","我是承袭父协程上下文的子协程 --- 开启")
+                delay(2000)
+                Log.d("我是承袭父协程上下文的子协程","我是承袭父协程上下文的子协程 --- 关闭")
+            }
+        }
+
+        delay(500)
+
+        request.cancel()
+
+        delay(1000)
+    }
 }

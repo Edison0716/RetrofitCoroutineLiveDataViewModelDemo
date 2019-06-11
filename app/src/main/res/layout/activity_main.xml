@@ -16,4 +16,10 @@
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent"/>
 
+    <Button
+            android:onClick="openTask"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@+id/tv_stock_name" app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintBottom_toBottomOf="parent"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
