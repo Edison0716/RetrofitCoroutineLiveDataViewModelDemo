@@ -18,8 +18,21 @@
 
     <Button
             android:onClick="openTask"
+            android:text="协程取消测试"
+            android:textSize="12sp"
             android:layout_width="wrap_content" android:layout_height="wrap_content"
             app:layout_constraintTop_toBottomOf="@+id/tv_stock_name" app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintBottom_toBottomOf="parent"/>
+            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintBottom_toTopOf="@id/bt_1"
+            android:id="@+id/button"
+    />
+    <Button
+            android:id="@+id/bt_1"
+            android:onClick="cancelActivity"
+            android:text="Activity销毁所有协程"
+            android:textSize="12sp"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@+id/button" app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintBottom_toBottomOf="parent"
+    />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

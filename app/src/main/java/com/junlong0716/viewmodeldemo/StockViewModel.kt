@@ -15,7 +15,7 @@ import retrofit2.HttpException
  * Date:     2019/6/6 10:27
  * Description:
  */
-class StockViewModel : ViewModel() {
+class StockViewModel : ViewModel(), CoroutineScope by CoroutineScope(Dispatchers.Default) {
     val mStockLiveData = MutableLiveData<StockBean>()
     var mStockLiveData1: LiveData<String> = Transformations.map(mStockLiveData) { it.result[0].data.name }
     val mStockRequestErrorMsg = MutableLiveData<String>()
@@ -24,9 +24,8 @@ class StockViewModel : ViewModel() {
     val mIntervalCannotCancelable = MutableLiveData<Any>()
 
     init {
-        GlobalScope.launch(Dispatchers.IO) {
+        this.launch {
             requestStockLiveInfo()
-            delay(5000)
             test1()
         }
     }
@@ -47,7 +46,7 @@ class StockViewModel : ViewModel() {
             }
         }
 
-        //堵塞线程
+        //堵塞线程 等待子协程结束之后释放
         job.join()
 
         val job1 = GlobalScope.launch(Dispatchers.Main) {
@@ -72,14 +71,14 @@ class StockViewModel : ViewModel() {
                     delay(3000)
                 }
             } finally {
-                Log.e("INTERVAL_LIKE_RXJAVA","轮询已结束")
+                Log.e("INTERVAL_LIKE_RXJAVA", "轮询已结束")
                 //不允许取消的协程
-                withContext(NonCancellable){
+                withContext(NonCancellable) {
                     mIntervalCannotCancelable.value = "已经开启一个不可取消的协程"
                 }
 
                 //超时即可取消的协程
-                withTimeout(10000L){
+                withTimeout(10000L) {
 
                 }
             }
@@ -108,18 +107,18 @@ class StockViewModel : ViewModel() {
         Log.d("COROUTINE_SCOPE", "over")
     }
 
-    fun channelTest() = runBlocking(Dispatchers.IO){
+    fun channelTest() = runBlocking(Dispatchers.IO) {
         val channel = Channel<Int>()
 
-        launch{
+        launch {
             for (i in 1..5) {
                 channel.send(i * i)
             }
             channel.close()
         }
 
-        repeat(5){
-            Log.e("CHANNEL_TEST",channel.receive().toString())
+        repeat(5) {
+            Log.e("CHANNEL_TEST", channel.receive().toString())
         }
     }
 
@@ -129,28 +128,28 @@ class StockViewModel : ViewModel() {
     }
 
     @ObsoleteCoroutinesApi
-    fun produceTest() = runBlocking(Dispatchers.IO){
+    fun produceTest() = runBlocking(Dispatchers.IO) {
         produceSquares().consumeEach {
-            Log.e("PRODUCE_TEST",it.toString())
+            Log.e("PRODUCE_TEST", it.toString())
         }
     }
 
 
-    fun cancelTest() = runBlocking{
+    fun cancelTest() = runBlocking {
         val request = launch {
             //不会随着父协程的取消而取消
             GlobalScope.launch {
-                Log.d("我是父协程内部的一个新协程","我是父协程内部的一个新协程 --- 开启")
+                Log.d("我是父协程内部的一个新协程", "我是父协程内部的一个新协程 --- 开启")
                 delay(2000)
-                Log.d("我是父协程内部的一个新协程","我是父协程内部的一个新协程 --- 结束")
+                Log.d("我是父协程内部的一个新协程", "我是父协程内部的一个新协程 --- 结束")
             }
 
             //随着父协程的取消而取消
             launch {
                 delay(100)
-                Log.d("我是承袭父协程上下文的子协程","我是承袭父协程上下文的子协程 --- 开启")
+                Log.d("我是承袭父协程上下文的子协程", "我是承袭父协程上下文的子协程 --- 开启")
                 delay(2000)
-                Log.d("我是承袭父协程上下文的子协程","我是承袭父协程上下文的子协程 --- 关闭")
+                Log.d("我是承袭父协程上下文的子协程", "我是承袭父协程上下文的子协程 --- 关闭")
             }
         }
 

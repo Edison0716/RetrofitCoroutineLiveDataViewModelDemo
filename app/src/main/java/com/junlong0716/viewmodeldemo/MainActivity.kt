@@ -1,5 +1,6 @@
 package com.junlong0716.viewmodeldemo
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -10,6 +11,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.coroutines.cancel
 
 class MainActivity : AppCompatActivity() {
     private var mTimes = 0
@@ -53,5 +55,14 @@ class MainActivity : AppCompatActivity() {
     
     fun openTask(v: View){
         mStockViewModel!!.cancelTest()
+    }
+
+    fun cancelActivity(v:View){
+        startActivity(Intent(this,CancelActivity::class.java))
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        mStockViewModel!!.cancel()
     }
 }
