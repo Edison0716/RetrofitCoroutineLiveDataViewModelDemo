@@ -7,4 +7,14 @@ package com.junlong0716.viewmodeldemo
  * Description:
  */
 
-class Stock(var name:String)
+class Stock(var name:String){
+    var age:Int = 0
+        get() = field + 1
+        set(value) {
+            field = if (value < 18){
+                -1
+            }else{
+                value + 1
+            }
+        }
+}

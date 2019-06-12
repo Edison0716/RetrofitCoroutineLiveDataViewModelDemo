@@ -31,63 +31,58 @@ class StockViewModel : ViewModel(), CoroutineScope by CoroutineScope(Dispatchers
     }
 
     private suspend fun requestStockLiveInfo() {
-        val job = GlobalScope.launch(Dispatchers.IO) {
-            delay(5000)
-            val requestStockAsync = BaseRetrofitClient.instance.getRetrofitClient().create(Api::class.java)
-                .requestStockAsync("sh601009", "f065fbab3b7e671f6e3cf9b1f8214ee2")
-            Log.d("------请求一次-----", "------请求一次-----")
-            try {
-                //子线程发送数据
-                mStockLiveData.postValue(requestStockAsync.await())
-            } catch (e: HttpException) {
-                mStockRequestErrorMsg.value = e.message()
-            } catch (e: Exception) {
-                mStockRequestErrorMsg.value = e.message
+        val job = coroutineScope {
+            launch {
+                delay(1000)
+                val requestStockAsync = BaseRetrofitClient.instance.getRetrofitClient().create(Api::class.java)
+                    .requestStockAsync("sh601009", "f065fbab3b7e671f6e3cf9b1f8214ee2")
+                Log.d("------请求一次-----", "------请求一次-----")
+                try {
+                    //子线程发送数据
+                    mStockLiveData.postValue(requestStockAsync.await())
+                } catch (e: HttpException) {
+                    mStockRequestErrorMsg.value = e.message()
+                } catch (e: Exception) {
+                    mStockRequestErrorMsg.value = e.message
+                }
             }
         }
 
         //堵塞线程 等待子协程结束之后释放
         job.join()
 
-        val job1 = GlobalScope.launch(Dispatchers.Main) {
-            delay(5000)
-            mTestLiveData.value = "OK"
+        val job1 = coroutineScope {
+            launch(Dispatchers.Main) {
+                delay(5000)
+                mTestLiveData.value = "OK"
+            }
         }
-
-        //todo 为什么没有挂起？
-        delay(5000)
 
         job1.join()
 
-        //阻塞线程
-        runBlocking {
-            delay(5000)
-        }
+        coroutineScope {
+            launch(Dispatchers.Main) {
+                try {
+                    repeat(Int.MAX_VALUE) {
+                        mIntervalLikeRxJava.value = "SEND_EVENT"
+                        delay(3000)
+                    }
+                } finally {
+                    Log.e("INTERVAL_LIKE_RXJAVA", "轮询已结束")
+                    //不允许取消的协程
+                    withContext(NonCancellable) {
+                        mIntervalCannotCancelable.value = "已经开启一个不可取消的协程"
+                    }
 
-        val job2 = GlobalScope.launch(Dispatchers.Main) {
-            try {
-                repeat(Int.MAX_VALUE) {
-                    mIntervalLikeRxJava.value = "SEND_EVENT"
-                    delay(3000)
-                }
-            } finally {
-                Log.e("INTERVAL_LIKE_RXJAVA", "轮询已结束")
-                //不允许取消的协程
-                withContext(NonCancellable) {
-                    mIntervalCannotCancelable.value = "已经开启一个不可取消的协程"
-                }
+                    //超时即可取消的协程
+                    withTimeout(10000L) {
 
-                //超时即可取消的协程
-                withTimeout(10000L) {
-
+                    }
                 }
             }
         }
 
         delay(5000)
-
-        //取消一个任务并且等待它结束
-        job2.cancelAndJoin()
     }
 
 
@@ -135,17 +130,17 @@ class StockViewModel : ViewModel(), CoroutineScope by CoroutineScope(Dispatchers
     }
 
 
-    fun cancelTest() = runBlocking {
-        val request = launch {
+    fun cancelTest() = async{
+        val request = launch(Dispatchers.IO) {
             //不会随着父协程的取消而取消
-            GlobalScope.launch {
+            GlobalScope.launch(Dispatchers.IO) {
                 Log.d("我是父协程内部的一个新协程", "我是父协程内部的一个新协程 --- 开启")
                 delay(2000)
                 Log.d("我是父协程内部的一个新协程", "我是父协程内部的一个新协程 --- 结束")
             }
 
             //随着父协程的取消而取消
-            launch {
+            launch(Dispatchers.IO) {
                 delay(100)
                 Log.d("我是承袭父协程上下文的子协程", "我是承袭父协程上下文的子协程 --- 开启")
                 delay(2000)

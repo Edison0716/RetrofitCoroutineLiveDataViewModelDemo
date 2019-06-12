@@ -1,13 +1,14 @@
 package com.junlong0716.viewmodeldemo
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import kotlinx.coroutines.cancel
 
-class CancelActivity : AppCompatActivity(){
+class CancelActivity : AppCompatActivity() {
+    private var mCancelViewModel: CancelViewModel? = null
 
-    private var mCancelViewModel:CancelViewModel?=null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_cancel)
@@ -15,14 +16,13 @@ class CancelActivity : AppCompatActivity(){
         mCancelViewModel!!.createCoroutine()
         val stock = Stock("haha")
         stock.print()
+
+        mCancelViewModel!!.mStockLiveData.observe(this, Observer{
+            Toast.makeText(this@CancelActivity,it,Toast.LENGTH_SHORT).show()
+        })
     }
 
-    fun Stock.print(){
+    fun Stock.print() {
         print("$name")
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        mCancelViewModel!!.cancel()
     }
 }
