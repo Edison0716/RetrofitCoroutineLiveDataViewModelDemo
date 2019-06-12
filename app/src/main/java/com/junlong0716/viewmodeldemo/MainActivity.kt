@@ -24,7 +24,7 @@ class MainActivity : AppCompatActivity() {
         //ViewModel 监听
         mStockViewModel = ViewModelProviders.of(this).get(StockViewModel::class.java)
         mStockViewModel!!.mStockLiveData.observe(this, Observer {
-            tv_stock_name.text = it.result[0].data.name
+            tv_stock_name.text = it.reason
         })
 
         mStockViewModel!!.mStockRequestErrorMsg.observe(this, Observer {

@@ -1,10 +1,7 @@
 package com.junlong0716.viewmodeldemo
 
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import retrofit2.HttpException
@@ -17,14 +14,14 @@ import retrofit2.HttpException
  */
 class StockViewModel : ViewModel(), CoroutineScope by CoroutineScope(Dispatchers.Default) {
     val mStockLiveData = MutableLiveData<StockBean>()
-    var mStockLiveData1: LiveData<String> = Transformations.map(mStockLiveData) { it.result[0].data.name }
+    var mStockLiveData1: LiveData<String> = Transformations.map(mStockLiveData) { it.reason }
     val mStockRequestErrorMsg = MutableLiveData<String>()
     val mTestLiveData = MutableLiveData<Any>()
     val mIntervalLikeRxJava = MutableLiveData<Any>()
     val mIntervalCannotCancelable = MutableLiveData<Any>()
 
     init {
-        this.launch {
+        viewModelScope.launch {
             requestStockLiveInfo()
             test1()
         }
@@ -32,14 +29,17 @@ class StockViewModel : ViewModel(), CoroutineScope by CoroutineScope(Dispatchers
 
     private suspend fun requestStockLiveInfo() {
         val job = coroutineScope {
-            launch {
+            launch(Dispatchers.IO){
                 delay(1000)
                 val requestStockAsync = BaseRetrofitClient.instance.getRetrofitClient().create(Api::class.java)
                     .requestStockAsync("sh601009", "f065fbab3b7e671f6e3cf9b1f8214ee2")
                 Log.d("------请求一次-----", "------请求一次-----")
                 try {
                     //子线程发送数据
-                    mStockLiveData.postValue(requestStockAsync.await())
+                    //todo 这里注意一定要与Activity生命周期进行绑定 否则会报 Cannot invoke setValue on a background thread 异常
+                    if (isActive){
+                        mStockLiveData.postValue(requestStockAsync.await())
+                    }
                 } catch (e: HttpException) {
                     mStockRequestErrorMsg.value = e.message()
                 } catch (e: Exception) {

@@ -41,18 +41,23 @@ class CancelViewModel : ViewModel() {
                 delay(2000L)
                 Log.d("创建协程3", "2000L")
             }
-
             withContext(Dispatchers.IO){
-                delay(2000L)
+                delay(1000L)
                 val requestStockAsync = BaseRetrofitClient.instance.getRetrofitClient().create(Api::class.java)
                     .requestStockAsync("sh601009", "f065fbab3b7e671f6e3cf9b1f8214ee2")
                 try {
                     //子线程发送数据
-                    mStockLiveData.postValue(requestStockAsync.await().result[0].data.name)
+                    if (isActive){
+                        mStockLiveData.postValue(requestStockAsync.await().result[0].data.name)
+                    }else{
+
+                    }
                 } catch (e: HttpException) {
                     Log.d("RESULT",e.message)
                 } catch (e: Exception) {
                     Log.d("RESULT",e.message)
+                } finally {
+                    Log.d("RESULT","网络请求完毕")
                 }
             }
         }
